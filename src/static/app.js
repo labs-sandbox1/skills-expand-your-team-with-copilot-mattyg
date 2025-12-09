@@ -415,7 +415,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!activity) return;
 
     // Create share content
-    const activityType = getActivityType(activityName, activity.description);
     const schedule = formatSchedule(activity);
     const spotsLeft = activity.max_participants - activity.participants.length;
     
@@ -444,28 +443,40 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
 
       case "copy":
-        // Copy link to clipboard
+        // Copy link to clipboard (requires HTTPS in production browsers)
         const textToCopy = `${shareText}\n\n${shareUrl}`;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          showMessage("Activity link copied to clipboard!", "success");
-        }).catch(() => {
-          // Fallback for older browsers
-          const textArea = document.createElement("textarea");
-          textArea.value = textToCopy;
-          textArea.style.position = "fixed";
-          textArea.style.left = "-999999px";
-          document.body.appendChild(textArea);
-          textArea.select();
-          try {
-            document.execCommand("copy");
+        
+        // Check if clipboard API is available
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(textToCopy).then(() => {
             showMessage("Activity link copied to clipboard!", "success");
-          } catch (err) {
-            showMessage("Failed to copy link. Please try again.", "error");
-          }
-          document.body.removeChild(textArea);
-        });
+          }).catch(() => {
+            // Fallback if clipboard API fails
+            fallbackCopyToClipboard(textToCopy);
+          });
+        } else {
+          // Fallback for older browsers or non-HTTPS contexts
+          fallbackCopyToClipboard(textToCopy);
+        }
         break;
     }
+  }
+
+  // Fallback function for copying to clipboard
+  function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand("copy");
+      showMessage("Activity link copied to clipboard!", "success");
+    } catch (err) {
+      showMessage("Failed to copy link. Please try again.", "error");
+    }
+    document.body.removeChild(textArea);
   }
 
   // Function to display filtered activities
@@ -612,16 +623,16 @@ document.addEventListener("DOMContentLoaded", () => {
         </ul>
       </div>
       <div class="share-buttons">
-        <button class="share-button" data-activity="${name}" data-platform="facebook" title="Share on Facebook">
+        <button class="share-button" data-activity="${name}" data-platform="facebook" title="Share on Facebook" aria-label="Share ${name} on Facebook">
           📘
         </button>
-        <button class="share-button" data-activity="${name}" data-platform="twitter" title="Share on Twitter">
+        <button class="share-button" data-activity="${name}" data-platform="twitter" title="Share on Twitter" aria-label="Share ${name} on Twitter">
           🐦
         </button>
-        <button class="share-button" data-activity="${name}" data-platform="email" title="Share via Email">
+        <button class="share-button" data-activity="${name}" data-platform="email" title="Share via Email" aria-label="Share ${name} via Email">
           ✉️
         </button>
-        <button class="share-button" data-activity="${name}" data-platform="copy" title="Copy Link">
+        <button class="share-button" data-activity="${name}" data-platform="copy" title="Copy Link" aria-label="Copy ${name} link to clipboard">
           🔗
         </button>
       </div>
