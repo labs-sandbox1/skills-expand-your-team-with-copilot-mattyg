@@ -42,12 +42,18 @@ def get_activities(
         query["schedule_details.end_time"] = {"$lte": end_time}
     
     if difficulty:
-        if difficulty.lower() == "all":
+        # Validate difficulty parameter to prevent invalid queries
+        valid_difficulties = ["all", "beginner", "intermediate", "advanced"]
+        if difficulty.lower() not in valid_difficulties:
+            # If invalid difficulty, ignore the filter
+            pass
+        elif difficulty.lower() == "all":
             # "All" (from "All (No Level)" button) means activities without a difficulty field
             query["difficulty"] = {"$exists": False}
         else:
             # Filter by specific difficulty level (Beginner, Intermediate, or Advanced)
-            query["difficulty"] = difficulty
+            # Use case-insensitive comparison by capitalizing first letter
+            query["difficulty"] = difficulty.capitalize()
     # If no difficulty parameter provided (from "All Levels" button), show all activities
     
     # Query the database
