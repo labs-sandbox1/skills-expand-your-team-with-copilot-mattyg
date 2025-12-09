@@ -401,6 +401,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Handle difficulty filter
+      // - Empty string (All Levels): no parameter sent, backend returns all activities
+      // - "All" (No Level): backend filters for activities without difficulty field
+      // - Specific level: backend filters for that difficulty level
       if (currentDifficulty) {
         queryParams.push(`difficulty=${encodeURIComponent(currentDifficulty)}`);
       }
