@@ -18,14 +18,16 @@ router = APIRouter(
 def get_activities(
     day: Optional[str] = None,
     start_time: Optional[str] = None,
-    end_time: Optional[str] = None
+    end_time: Optional[str] = None,
+    difficulty: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Get all activities with their details, with optional filtering by day and time
+    Get all activities with their details, with optional filtering by day, time, and difficulty
     
     - day: Filter activities occurring on this day (e.g., 'Monday', 'Tuesday')
     - start_time: Filter activities starting at or after this time (24-hour format, e.g., '14:30')
     - end_time: Filter activities ending at or before this time (24-hour format, e.g., '17:00')
+    - difficulty: Filter activities by difficulty level (e.g., 'Beginner', 'Intermediate', 'Advanced')
     """
     # Build the query based on provided filters
     query = {}
@@ -38,6 +40,24 @@ def get_activities(
     
     if end_time:
         query["schedule_details.end_time"] = {"$lte": end_time}
+    
+    if difficulty:
+        # Validate difficulty parameter to prevent invalid queries
+        valid_difficulties = ["all", "beginner", "intermediate", "advanced"]
+        if difficulty.lower() not in valid_difficulties:
+            # Return error for invalid difficulty values
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid difficulty level. Must be one of: {', '.join(valid_difficulties)}"
+            )
+        elif difficulty.lower() == "all":
+            # "All" (from "All (No Level)" button) means activities without a difficulty field
+            query["difficulty"] = {"$exists": False}
+        else:
+            # Filter by specific difficulty level (Beginner, Intermediate, or Advanced)
+            # Use case-insensitive comparison by capitalizing first letter
+            query["difficulty"] = difficulty.capitalize()
+    # If no difficulty parameter provided (from "All Levels" button), show all activities
     
     # Query the database
     activities = {}
