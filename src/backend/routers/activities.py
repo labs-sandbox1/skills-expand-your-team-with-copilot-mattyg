@@ -45,8 +45,11 @@ def get_activities(
         # Validate difficulty parameter to prevent invalid queries
         valid_difficulties = ["all", "beginner", "intermediate", "advanced"]
         if difficulty.lower() not in valid_difficulties:
-            # If invalid difficulty, ignore the filter
-            pass
+            # Return error for invalid difficulty values
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid difficulty level. Must be one of: {', '.join(valid_difficulties)}"
+            )
         elif difficulty.lower() == "all":
             # "All" (from "All (No Level)" button) means activities without a difficulty field
             query["difficulty"] = {"$exists": False}
