@@ -524,8 +524,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Create difficulty badge if difficulty is present
     const difficultyBadge = details.difficulty ? `
-      <span class="difficulty-badge difficulty-${details.difficulty.toLowerCase()}">
-        ${details.difficulty}
+      <span class="difficulty-badge difficulty-${details.difficulty.toLowerCase().replace(/[^a-z]/g, '')}">
+        ${details.difficulty.replace(/[<>]/g, '')}
       </span>
     ` : '';
 
